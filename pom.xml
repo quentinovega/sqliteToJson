@@ -50,7 +50,7 @@
                 <!-- Specify the maven code generator plugin -->
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
-                <version>3.4.5</version>
+                <version>3.8.6</version>
 
                 <!-- The plugin should hook into the generate goal -->
                 <executions>
@@ -77,7 +77,7 @@
                     <!-- JDBC connection parameters -->
                     <jdbc>
                         <driver>org.sqlite.JDBC</driver>
-                        <url>jdbc:sqlite:/home/qaubert/Personal/sqliteToJson/comic.db</url>
+                        <url>jdbc:sqlite:comic.db</url>
                     </jdbc>
 
                     <!-- Generator parameters -->
