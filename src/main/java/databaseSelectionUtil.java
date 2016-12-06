@@ -2,12 +2,18 @@ import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.util.maven.example.tables.Serie;
 import org.jooq.util.sqlite.SQLiteDataType;
+import org.reactivecouchbase.json.JsArray;
+import org.reactivecouchbase.json.JsObject;
+import org.reactivecouchbase.json.Json;
+
+import java.util.List;
 
 import static org.jooq.impl.DSL.one;
 import static org.jooq.impl.DSL.select;
 import static org.jooq.util.maven.example.Tables.*;
 import static org.jooq.util.maven.example.tables.Livre.LIVRE;
 import static org.jooq.util.sqlite.SQLiteDSL.rowid;
+import static org.reactivecouchbase.json.Syntax.$;
 
 public class databaseSelectionUtil {
 
@@ -33,16 +39,37 @@ public class databaseSelectionUtil {
                                 LIVRE.RECOMPENSE
                         )
                         .from(LIVRE)
-                        .innerJoin(Serie.SERIE)
-                        .on(LIVRE.ID_SERIE.equal(select((rowid().cast(SQLiteDataType.INT))).from(Serie.SERIE)))
+                        .orderBy(one().asc())
                         .fetch();
+
+//        JsArray books = Json.arr(
+//                result.map(record -> Json.obj(
+//                        $("id", record.getValue(one())),
+//                        $("title", record.getValue(LIVRE.TITRE)),
+//                        $("subTitle", record.getValue(LIVRE.SOUS_TITRE)),
+//                        $("price", record.getValue(LIVRE.PRIX).longValue()),
+//                        $("author", record.getValue(LIVRE.ID_AUTEUR.cast(SQLiteDataType.INT))),
+//                        $("artist", record.getValue(LIVRE.ID_ARTISTE.cast(SQLiteDataType.INT))),
+//                        $("titre", record.getValue(LIVRE.ID_FORMAT)),
+//                        $("titre", record.getValue(LIVRE.ID_EDITEUR)),
+//                        $("titre", record.getValue(LIVRE.ID_GENRE)),
+//                        $("titre", record.getValue(LIVRE.ID_LOCALISATION)),
+//                        $("titre", record.getValue(LIVRE.ISBN)),
+//                        $("titre", record.getValue(LIVRE.DATE_PUBLICATION)),
+//                        $("titre", record.getValue(LIVRE.COMMENTAIRE)),
+//                        $("titre", record.getValue(LIVRE.RESUME)),
+//                        $("titre", record.getValue(LIVRE.DATE_ACHAT)),
+//                        $("titre", record.getValue(LIVRE.RECOMPENSE))
+//                )));
 
         result.forEach(record -> {
             String title = record.getValue(LIVRE.TITRE);
             String subtitle = record.getValue(LIVRE.SOUS_TITRE);
-            String serie = record.getValue(Serie.SERIE.NOM);
-            System.out.println(title + " - " + subtitle + " - " + serie);
+            String isbn = record.getValue(LIVRE.ISBN);
+            System.out.println(title + " - " + subtitle + " - " + isbn);
         });
+
+
     }
 
     public static void getSerie(DSLContext create) {

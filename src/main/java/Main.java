@@ -9,11 +9,11 @@ import java.sql.SQLException;
 public class Main {
 
     public static void main(String[] args) {
-        Connexion connexion = new Connexion("/home/vegalf/Taf/sqliteToJson/comic.db");
+        Connexion connexion = new Connexion("comic.db");
 
         try (Connection conn = connexion.connect()) {
             DSLContext create = DSL.using(conn, SQLDialect.SQLITE);
-            databaseSelectionUtil.getSerie(create);
+            databaseSelectionUtil.getBook(create);
         } catch (SQLException e) {
             e.printStackTrace();
         }
