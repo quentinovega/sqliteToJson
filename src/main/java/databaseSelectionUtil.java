@@ -1,9 +1,16 @@
+import fr.alliancesoftware.functional.Option;
+import fr.alliancesoftware.json.Syntax;
+import fr.alliancesoftware.sql.SQL;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.util.sqlite.SQLiteDataType;
 import org.reactivecouchbase.json.JsArray;
+import org.reactivecouchbase.json.JsObject;
 import org.reactivecouchbase.json.Json;
 
+import java.sql.Connection;
+
+import static fr.alliancesoftware.sql.SQLTools.sql;
 import static org.jooq.impl.DSL.one;
 import static org.jooq.util.maven.example.Tables.*;
 import static org.jooq.util.maven.example.tables.Livre.LIVRE;
@@ -12,52 +19,15 @@ import static org.reactivecouchbase.json.Syntax.$;
 
 public class databaseSelectionUtil {
 
-    public static JsArray getBook(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(
-                                rowid().as("id"),
-                                LIVRE.TITRE,
-                                LIVRE.SOUS_TITRE,
-                                LIVRE.PRIX,
-                                LIVRE.ID_AUTEUR.cast(SQLiteDataType.BIGINT).as("id_auteur"),
-                                LIVRE.ID_ARTISTE.cast(SQLiteDataType.BIGINT).as("id_artiste"),
-                                LIVRE.ID_FORMAT,
-                                LIVRE.ID_EDITEUR,
-                                LIVRE.ID_GENRE,
-                                LIVRE.ID_LOCALISATION,
-                                LIVRE.ISBN,
-                                LIVRE.DATE_PUBLICATION.cast(SQLiteDataType.DATE).as("publication"),
-                                LIVRE.COMMENTAIRE,
-                                LIVRE.RESUME,
-                                LIVRE.DATE_ACHAT.cast(SQLiteDataType.DATE).as("achat"),
-                                LIVRE.RECOMPENSE
-                        )
-                        .from(LIVRE)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsObject getBook(Connection connection) {
+        SQL sql = sql(connection, "select rowid as id, titre, sous_titre, prix,  from livre");
+        fr.alliancesoftware.json.JsArray titles = fr.alliancesoftware.json.Json.arr(sql.executeQuery((row, i) -> Option.some(
+                fr.alliancesoftware.json.Json.obj(
+                        Syntax.$("titre", row.str("titre"))
+                )
+        )));
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("title", record.getValue(LIVRE.TITRE)),
-                        $("subTitle", record.getValue(LIVRE.SOUS_TITRE)),
-                        $("price", record.getValue(LIVRE.PRIX).longValue()),
-                        $("author", (Long) record.getValue("id_auteur")),
-                        $("artist", (Long) record.getValue("id_artiste")),
-                        $("format", record.getValue(LIVRE.ID_FORMAT)),
-                        $("editor", record.getValue(LIVRE.ID_EDITEUR)),
-                        $("style", record.getValue(LIVRE.ID_GENRE)),
-                        $("location", record.getValue(LIVRE.ID_LOCALISATION)),
-                        $("isbn", (String) record.getValue(LIVRE.ISBN)),
-                        $("publicationDate", record.getValue("publication").toString()),
-                        $("comment", record.getValue(LIVRE.COMMENTAIRE)),
-                        $("synopsis", record.getValue(LIVRE.RESUME)),
-                        $("buyingDate", record.getValue("achat").toString()),
-                        $("award", record.getValue(LIVRE.RECOMPENSE))
-                )));
-
-
+        return Json.obj();
     }
 
     public static JsArray getSeries(DSLContext create) {
