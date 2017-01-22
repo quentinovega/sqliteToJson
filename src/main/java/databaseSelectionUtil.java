@@ -1,6 +1,7 @@
 import fr.alliancesoftware.functional.Option;
 import fr.alliancesoftware.json.Syntax;
 import fr.alliancesoftware.sql.SQL;
+import org.apache.commons.io.FileUtils;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.util.sqlite.SQLiteDataType;
@@ -8,6 +9,10 @@ import org.reactivecouchbase.json.JsArray;
 import org.reactivecouchbase.json.JsObject;
 import org.reactivecouchbase.json.Json;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 
 import static fr.alliancesoftware.sql.SQLTools.sql;
@@ -19,120 +24,97 @@ import static org.reactivecouchbase.json.Syntax.$;
 
 public class databaseSelectionUtil {
 
-    public static JsObject getBook(Connection connection) {
-        SQL sql = sql(connection, "select rowid as id, titre, sous_titre, prix,  from livre");
-        fr.alliancesoftware.json.JsArray titles = fr.alliancesoftware.json.Json.arr(sql.executeQuery((row, i) -> Option.some(
-                fr.alliancesoftware.json.Json.obj(
-                        Syntax.$("titre", row.str("titre"))
+    public static JsObject getCollection(Connection connection) throws IOException {
+        File requestFile =  new File(databaseSelectionUtil.class.getClassLoader().getResource("book.sql").getFile());
+        String request = FileUtils.readFileToString(requestFile, Charset.defaultCharset());
+        SQL sql = sql(connection, request);
+        //fixme: replace row.str() par le bon type d'attribut
+        JsObject collection = sql.executeQuery((row, i) -> Option.some(
+                Json.obj(
+                        $(row.str("id_livre"), Json.obj(
+                            $("title", row.str("titre")),
+                            $("subTitle", row.str("sous_titre")),
+                            $("price", row.str("prix")),
+                            $("isbn", row.str("isbn")),
+                            $("publicationDate", row.str("date_publication")),
+                            $("purchaseDate", row.str("date_achat")),
+                            $("comment", row.str("commentaire")),
+                            $("synopsis", row.str("resume")),
+                            $("award", row.str("recompense")),
+                            $("serie", Json.obj(
+                                    $("id", row.str("id_serie")),
+                                    $("name", row.str("nom_serie"))
+                            ),
+                            $("author", Json.obj(
+                                    $("id", row.str("id_auteur")),
+                                    $("name", row.str("nom_auteur"))
+                            ),
+                            $("artist", Json.obj(
+                                    $("id", row.str("id_artist")),
+                                    $("name", row.str("nom_artist"))
+                            ),
+                            $("format", Json.obj(
+                                    $("id", row.str("id_format")),
+                                    $("label", row.str("nom_format"))
+                            ),
+                            $("editor", Json.obj(
+                                    $("id", row.str("id_editeur")),
+                                    $("name", row.str("nom_editeur"))
+                            ),
+                            $("condition", Json.obj(
+                                    $("id", row.str("id_etat")),
+                                    $("label", row.str("nom_etat"))
+                            ),
+                            $("style", Json.obj(
+                                    $("id", row.str("id_genre")),
+                                    $("name", row.str("nom_genre"))
+                            )
+                        ))
                 )
         )));
 
-        return Json.obj();
+        return Json.obj("comics", collection);
     }
 
-    public static JsArray getSeries(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), SERIE.NOM)
-                        .from(SERIE)
-                        .orderBy(one().asc())
-                        .fetch();
+    //todo: permettre de remmetre les nom des artiste et auteur dans le bon ordre
+    private String toHumanReadbleName(String name) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(SERIE.NOM))
-                )));
+        return null;
     }
 
-    public static JsArray getArtists(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), ARTISTE.NOM)
-                        .from(ARTISTE)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsArray getSeries(Connection connection) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(ARTISTE.NOM))
-                )));
+        return null;
     }
 
-    public static JsArray getAuthors(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), AUTEUR.NOM)
-                        .from(AUTEUR)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsArray getArtists(Connection connection) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(AUTEUR.NOM))
-                )));
+        return null;
     }
 
-    public static JsArray getEditors(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), EDITEUR.NOM)
-                        .from(EDITEUR)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsArray getAuthors(Connection connection) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(EDITEUR.NOM))
-                )));
+        return null;
     }
 
-    public static JsArray getFormats(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), FORMAT.NOM)
-                        .from(FORMAT)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsArray getEditors(Connection connection) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(FORMAT.NOM))
-                )));
+        return null;
     }
 
-    public static JsArray getStyles(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), GENRE.NOM)
-                        .from(GENRE)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsArray getFormats(Connection connection) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(GENRE.NOM))
-                )));
+        return null;
     }
 
-    public static JsArray getLocations(DSLContext create) {
-        Result<?> result =
-                create
-                        .select(rowid().as("id"), LOCALISATION.NOM)
-                        .from(LOCALISATION)
-                        .orderBy(one().asc())
-                        .fetch();
+    public static JsArray getStyles(Connection connection) {
 
-        return Json.arr(
-                result.map(record -> Json.obj(
-                        $("id", (Long) record.getValue("id")),
-                        $("name", record.getValue(LOCALISATION.NOM))
-                )));
+        return null;
+    }
+
+    public static JsArray getLocations(Connection connection) {
+
+        return null;
     }
 
 
