@@ -1,13 +1,11 @@
-import fr.alliancesoftware.functional.Option;
-import fr.alliancesoftware.json.JsArray;
+import fr.alliancesoftware.json.JsObject;
 import fr.alliancesoftware.json.Json;
-import fr.alliancesoftware.sql.SQL;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import static fr.alliancesoftware.json.Syntax.$;
-import static fr.alliancesoftware.sql.SQLTools.sql;
 
 
 public class Main {
@@ -16,15 +14,20 @@ public class Main {
         Connexion connexion = new Connexion("comic.db");
 
         try (Connection conn = connexion.connect()) {
-            SQL sql = sql(conn, "select titre from livre");
-            JsArray titles = Json.arr(sql.executeQuery((row, i) -> Option.some(
-                    Json.obj(
-                            $("titre", row.str("titre"))
-                    )
-            )));
+            JsObject database = Json.obj(
+                    $("comics", databaseSelectionUtil.getCollection(conn)),
+                    $("authors", databaseSelectionUtil.getAuthors(conn)),
+                    $("artists", databaseSelectionUtil.getArtists(conn)),
+                    $("editors", databaseSelectionUtil.getEditors(conn)),
+                    $("formats", databaseSelectionUtil.getFormats(conn)),
+                    $("locations", databaseSelectionUtil.getLocations(conn)),
+                    $("styles", databaseSelectionUtil.getStyles(conn)),
+                    $("condition", databaseSelectionUtil.getConditions(conn))
+            );
 
-            System.out.println(titles.stringify(true));
-        } catch (SQLException e) {
+            //todo: export in file
+            System.out.println(database.stringify(true));
+        } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 

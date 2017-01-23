@@ -43,18 +43,18 @@ WITH auteurs AS (
         resume, date_achat, recompense FROM livre
   )
 
-SELECT id_livre, titre, sous_titre, prix
-  , l.id_serie, nom_serie
-  , l.id_auteur, nom_auteur
-  , l.id_artiste, nom_artiste
-  , l.id_format, nom_format
-  , l.id_editeur, nom_editeur
-  , l.id_genre, nom_genre
-  , l.id_etat, nom_etat
-  , l.id_localisation, nom_localisation
-  , l.isbn, date_publication, commentaire,
+SELECT id_livre, titre, sous_titre, prix, isbn
+  , livres.id_serie as id_serie, nom_serie
+  , livres.id_auteur as id_auteur, nom_auteur
+  , livres.id_artiste as id_artiste, nom_artiste
+  , livres.id_format as id_format, nom_format
+  , livres.id_editeur as id_editeur, nom_editeur
+  , livres.id_genre as id_genre, nom_genre
+  , livres.id_etat as id_etat, nom_etat
+  , livres.id_localisation as id_localisation, nom_localisation
+  , livres.isbn, date_publication, commentaire,
   resume, date_achat, recompense
-FROM livres l
+FROM livres
 INNER JOIN auteurs ON livres.id_auteur = auteurs.id_auteur
 INNER JOIN artistes ON livres.id_artiste = artistes.id_artiste
 INNER JOIN editeurs on livres.id_editeur = editeurs.id_editeur
